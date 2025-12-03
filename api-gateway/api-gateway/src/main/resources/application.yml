@@ -1,0 +1,50 @@
+server:
+  port: 8080
+
+spring:
+  application:
+    name: api-gateway
+
+  cloud:
+    compatibility-verifier:
+      enabled: false  # Avoid Spring Cloud version rejection for Boot 3.5.x
+
+    gateway:
+      routes:
+
+        # Auth Service
+        - id: auth-service
+          uri: http://localhost:8081
+          predicates:
+            - Path=/api/auth/**, /api/me/**
+
+        # User Management Service
+        - id: user-management-service
+          uri: http://localhost:8082
+          predicates:
+            - Path=/api/companies/**, /api/admin/**, /api/v1/users/**, /api/internal/users/**
+
+        # Question & Exam Service
+        - id: question-exam-service
+          uri: http://localhost:8084
+          predicates:
+            - Path=/api/v1/exams/**, /api/v1/exam-assignments/**, /api/v1/questions/**, /api/v1/topics/**, /api/v1/employees/**
+
+      default-filters:
+        - RemoveRequestHeader=Cookie
+        - DedupeResponseHeader=Access-Control-Allow-Origin Access-Control-Allow-Credentials
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info
+
+security:
+  jwt:
+    secret: "myVeryLongAndSecureJwtSecretKeyForApiGatewayThatIsAtLeast32Characters"
+
+logging:
+  level:
+    org.springframework.cloud.gateway: INFO
+    com.onlinetest.api_gateway.security: DEBUG

@@ -1,0 +1,51 @@
+server:
+  port: 8084
+
+spring:
+  application:
+    name: question-exam-service
+
+  datasource:
+    url: jdbc:mysql://localhost:3306/question_exam_db?createDatabaseIfNotExist=true
+    username: root
+    password: 6388065025
+    driver-class-name: com.mysql.cj.jdbc.Driver
+
+  jpa:
+    hibernate:
+      ddl-auto: validate
+    show-sql: true
+    properties:
+      hibernate:
+        dialect: org.hibernate.dialect.MySQLDialect
+
+  flyway:
+    enabled: true
+    locations: classpath:db/migration
+
+services:
+  user:
+    base-url: http://localhost:8082
+  auth:
+    base-url: http://localhost:8081
+
+# ✅ Shared JWT Config (must match Auth & Gateway)
+security:
+  jwt:
+    secret: "myVeryLongAndSecureJwtSecretKeyForApiGatewayThatIsAtLeast32Characters"
+    issuer: "auth-service"
+    audience: "api"
+
+logging:
+  level:
+    com.onlinetest.questionexam: DEBUG
+    org.springframework.web.client.RestTemplate: INFO
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info
+  endpoint:
+    health:
+      show-details: always

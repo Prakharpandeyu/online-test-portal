@@ -1,0 +1,4 @@
+ALTER TABLE exams
+ADD COLUMN updated_by BIGINT NULL,
+ADD COLUMN updated_by_role VARCHAR(50) NULL,
+ADD COLUMN updated_date DATETIME NULL;
