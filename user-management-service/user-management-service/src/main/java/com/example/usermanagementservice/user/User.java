@@ -1,6 +1,4 @@
 package com.example.usermanagementservice.user;
-
-
 import com.example.usermanagementservice.company.Company;
 import jakarta.persistence.*;
 import java.time.Instant;
