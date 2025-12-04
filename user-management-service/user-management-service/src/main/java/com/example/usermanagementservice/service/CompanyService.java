@@ -33,10 +33,7 @@ public class CompanyService {
         this.roleRepository = roleRepository;
         this.passwordEncoder = passwordEncoder;
     }
-
-
     // REGISTER NEW COMPANY + CREATE SUPER ADMIN
-
     @Transactional
     public CompanyRegistrationResponse registerCompany(CompanyRegistrationRequest req) {
         String companyName = req.getCompanyName().trim();
@@ -90,10 +87,7 @@ public class CompanyService {
         }
         return email;
     }
-
-
     // UPDATE COMPANY DETAILS (SUPER ADMIN ONLY)
-
     @Transactional
     public void updateCompany(Long companyId, UpdateCompanyRequest req) {
         Company company = companyRepository.findById(companyId)
@@ -111,7 +105,6 @@ public class CompanyService {
 
         company.setName(newName);
         company.setGstNumber(newGst);
-
         companyRepository.save(company);
     }
 }
