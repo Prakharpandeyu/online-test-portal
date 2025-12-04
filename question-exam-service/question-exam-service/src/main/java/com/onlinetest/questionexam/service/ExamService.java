@@ -185,8 +185,6 @@ public class ExamService {
                         .build())
                 .toList();
     }
-
-    // Update exam by id (metadata only; question set remains unchanged unless you add logic)
     public ExamResponseDTO updateExam(Long examId, ExamCreateRequestDTO req, Long companyId, Long userId, String role) {
         Exam exam = examRepository.findById(examId)
                 .orElseThrow(() -> new RuntimeException("Exam not found: " + examId));
@@ -196,7 +194,6 @@ public class ExamService {
 
         exam.setTitle(req.getTitle());
         exam.setDescription(req.getDescription());
-        // Do not trust inbound totalQuestions; keep existing or recompute if needed
         exam.setDurationMinutes(req.getDurationMinutes());
         exam.setUpdatedBy(userId);
         exam.setUpdatedByRole(role);
