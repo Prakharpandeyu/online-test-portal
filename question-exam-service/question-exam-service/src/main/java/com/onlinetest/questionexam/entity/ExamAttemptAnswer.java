@@ -25,5 +25,5 @@ public class ExamAttemptAnswer {
 
     @Column(nullable = false) private Boolean isCorrect;
 
-    @Column(nullable = false) private Integer position; // from exam_questions ordering
+    @Column(nullable = false) private Integer position; 
 }
