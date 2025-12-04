@@ -48,7 +48,6 @@ public class JwtAuthFilter extends OncePerRequestFilter {
             Long companyId = jwtUtil.extractCompanyId(token);
             String rolePlain = jwtUtil.extractRole(token); // SUPER_ADMIN / ADMIN / EMPLOYEE
 
-            // Ensure role always starts with "ROLE_"
             String roleWithPrefix = rolePlain.startsWith("ROLE_") ? rolePlain : "ROLE_" + rolePlain;
             var authorities = List.of(new SimpleGrantedAuthority(roleWithPrefix));
 
@@ -56,7 +55,6 @@ public class JwtAuthFilter extends OncePerRequestFilter {
             auth.setDetails(companyId);
             SecurityContextHolder.getContext().setAuthentication(auth);
 
-            // Log successful authentication (INFO for visibility)
             log.info("Authenticated userId={}, companyId={}, roles={}", userId, companyId, authorities);
 
         } catch (Exception e) {
