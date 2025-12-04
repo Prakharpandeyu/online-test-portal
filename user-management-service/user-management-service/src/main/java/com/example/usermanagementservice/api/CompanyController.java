@@ -13,7 +13,6 @@ public class CompanyController {
     private final CompanyService companyService;
     public CompanyController(CompanyService companyService){ this.companyService=companyService; }
 
-    // public (gateway may allow)
     @PostMapping("/register")
     public ResponseEntity<CompanyRegistrationResponse> register(@Valid @RequestBody CompanyRegistrationRequest request){
         return ResponseEntity.ok(companyService.registerCompany(request));
