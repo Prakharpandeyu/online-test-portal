@@ -23,9 +23,6 @@ public class UserQueryController {
     private final CompanyRepository companyRepository;
     private final UserRepository userRepository;
 
-
-    // GET ALL USERS OF CALLER’S COMPANY (ADMIN & SUPER_ADMIN)
-
     @GetMapping("/company/me")
     @PreAuthorize("hasAnyRole('SUPER_ADMIN','ADMIN')")
     public ResponseEntity<List<UserSummaryDTO>> getUsersForMyCompany(Authentication auth) {
@@ -39,8 +36,6 @@ public class UserQueryController {
 
         return ResponseEntity.ok(dtos);
     }
-    // GET ONLY EMPLOYEES OF CALLER’S COMPANY
-    // (Used by Question Exam Service)
     @GetMapping("/employees/company/me")
     @PreAuthorize("hasAnyRole('SUPER_ADMIN','ADMIN')")
     public ResponseEntity<List<UserSummaryDTO>> getEmployeesForMyCompany(Authentication auth) {
