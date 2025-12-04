@@ -74,8 +74,6 @@ public class Question {
 
     @Column(name = "is_active", nullable = false)
     private Boolean isActive = true;
-
-    // Optional relationship for convenience (no FK management here)
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "topic_id", insertable = false, updatable = false)
     private Topic topic;
