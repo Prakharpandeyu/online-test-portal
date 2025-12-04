@@ -14,9 +14,6 @@ import org.springframework.transaction.annotation.Transactional;
 import java.util.List;
 import java.util.stream.Collectors;
 
-/**
- * Implementation of TopicService
- */
 @Service
 @RequiredArgsConstructor
 @Slf4j
@@ -35,7 +32,6 @@ public class TopicService  {
             throw new RuntimeException("Topic with name '" + requestDTO.getName() + "' already exists");
         }
 
-        // Create new topic with role (Updated constructor call)
         Topic topic = new Topic(companyId, requestDTO.getName(), requestDTO.getDescription(), userId, role);
         Topic savedTopic = topicRepository.save(topic);
 
@@ -50,7 +46,7 @@ public class TopicService  {
 
         List<Topic> topics = topicRepository.findByCompanyIdOrderByNameAsc(companyId);
         return topics.stream()
-                .map(this::mapToResponseDTO) // Use stored role from database
+                .map(this::mapToResponseDTO) 
                 .collect(Collectors.toList());
     }
 
@@ -72,7 +68,7 @@ public class TopicService  {
         Topic topic = topicRepository.findByIdAndCompanyId(topicId, companyId)
                 .orElseThrow(() -> new RuntimeException("Topic not found with ID: " + topicId));
 
-        return mapToResponseDTO(topic); // Use stored role from database
+        return mapToResponseDTO(topic); 
     }
 
 
@@ -82,7 +78,6 @@ public class TopicService  {
         Topic topic = topicRepository.findByIdAndCompanyId(topicId, companyId)
                 .orElseThrow(() -> new RuntimeException("Topic not found with ID: " + topicId));
 
-        // Check if new name conflicts with existing topics
         if (!topic.getName().equals(requestDTO.getName()) &&
                 topicRepository.existsByNameAndCompanyId(requestDTO.getName(), companyId)) {
             throw new RuntimeException("Topic with name '" + requestDTO.getName() + "' already exists");
@@ -119,9 +114,6 @@ public class TopicService  {
                 .collect(Collectors.toList());
     }
 
-    /**
-     * Map Topic entity to TopicResponseDTO
-     */
     private TopicResponseDTO mapToResponseDTO(Topic topic) {
         return TopicResponseDTO.builder()
                 .id(topic.getId())
