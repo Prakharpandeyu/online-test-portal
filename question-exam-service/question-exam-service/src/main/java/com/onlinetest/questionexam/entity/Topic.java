@@ -12,10 +12,7 @@ import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 
 import java.time.LocalDateTime;
 
-/**
- * Topic entity for organizing questions by subject/category
- * Each topic belongs to a specific company (multi-tenant)
- */
+
 @Entity
 @Table(name = "topics")
 @Data
