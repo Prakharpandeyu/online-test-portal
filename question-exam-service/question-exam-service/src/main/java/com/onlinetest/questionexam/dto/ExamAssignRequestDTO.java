@@ -12,7 +12,7 @@ import java.util.List;
 public class ExamAssignRequestDTO {
     @NotNull private Long examId;
     @NotEmpty private List<Long> employeeIds;
-    private LocalDateTime startTime;   // optional, null = available immediately
-    private LocalDateTime endTime;     // optional, null = no end constraint
+    private LocalDateTime startTime;   
+    private LocalDateTime endTime;     
     @NotNull @Min(1) private Integer maxAttempts = 1;
 }
