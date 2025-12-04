@@ -26,10 +26,8 @@ public class ExamAssignment {
 
     @Column(nullable = false) private Integer maxAttempts = 1;
 
-    // NEW: track attempts used to enforce maxAttempts
     @Column(nullable = false) private Integer attemptsUsed = 0;
 
-    // Optional snapshots for fast UI listing (nullable)
     @Column(length = 15)     private String lastResult;       // "PASSED" | "FAILED"
     @Column                  private Integer lastPercentage;  // 0-100
     @Column                  private LocalDateTime lastSubmittedAt;
