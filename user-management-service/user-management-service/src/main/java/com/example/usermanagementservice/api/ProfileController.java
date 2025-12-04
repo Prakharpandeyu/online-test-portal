@@ -31,9 +31,6 @@ public class ProfileController {
     private final CompanyService companyService;
     private final CompanyRepository companyRepository;
 
-    // ==============================
-    // GET MY PROFILE
-    // ==============================
     @GetMapping("/me")
     @PreAuthorize("hasAnyRole('SUPER_ADMIN','ADMIN','EMPLOYEE')")
     public ResponseEntity<UserProfileResponse> getMyProfile(Authentication auth) {
@@ -65,9 +62,6 @@ public class ProfileController {
         return ResponseEntity.ok(dto);
     }
 
-    // ==============================
-    // UPDATE MY PROFILE
-    // ==============================
     @PatchMapping("/me")
     @PreAuthorize("hasAnyRole('SUPER_ADMIN','ADMIN','EMPLOYEE')")
     public ResponseEntity<?> updateMyProfile(@Valid @RequestBody UpdateUserProfileRequest req,
@@ -83,9 +77,6 @@ public class ProfileController {
         ));
     }
 
-    // ==============================
-    // CHANGE MY PASSWORD
-    // ==============================
     @PatchMapping("/password")
     @PreAuthorize("hasAnyRole('SUPER_ADMIN','ADMIN','EMPLOYEE')")
     public ResponseEntity<?> changeMyPassword(@Valid @RequestBody ChangePasswordRequest req,
@@ -98,9 +89,6 @@ public class ProfileController {
         return ResponseEntity.ok(Map.of("message", "Password changed"));
     }
 
-    // ==============================
-    // UPDATE COMPANY
-    // ==============================
     @PatchMapping("/company")
     @PreAuthorize("hasRole('SUPER_ADMIN')")
     public ResponseEntity<?> updateMyCompany(@Valid @RequestBody UpdateCompanyRequest req,
@@ -126,9 +114,6 @@ public class ProfileController {
         ));
     }
 
-    // ==============================
-    // EXTRACT VALUES
-    // ==============================
     private Long extractUserId(Authentication auth) {
         Map<String, Object> map = (Map<String, Object>) auth.getDetails();
         return Long.valueOf(map.get("userId").toString());
