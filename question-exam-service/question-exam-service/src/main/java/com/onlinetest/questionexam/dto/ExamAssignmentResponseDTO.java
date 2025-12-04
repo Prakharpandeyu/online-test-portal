@@ -23,15 +23,14 @@ public class ExamAssignmentResponseDTO {
     private Integer passingPercentage; // 0-100
 
     // Assignment status
-    private String status; // ASSIGNED / IN_PROGRESS / COMPLETED / EXPIRED / REVOKED
+    private String status; // ASSIGNED / IN_PROGRESS / COMPLETED / EXPIRED / 
     private Integer maxAttempts;
 
     // Attempts tracking
-    private Integer attemptsUsed;        // How many attempts already taken
-    private Integer attemptsRemaining;   // maxAttempts - attemptsUsed
-    private String lastResult;           // PASSED / FAILED (last attempt)
-    private Integer lastPercentage;      // Score % of last attempt
-
+    private Integer attemptsUsed;       
+    private Integer attemptsRemaining;   
+    private String lastResult;           
+    private Integer lastPercentage;      
     // Time window controls
     private LocalDateTime startTime;
     private LocalDateTime endTime;
