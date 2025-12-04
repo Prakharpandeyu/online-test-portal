@@ -59,7 +59,7 @@ public class JwtAuthFilter extends OncePerRequestFilter {
 
             log.error("Parsed From JWT → userId=" + userId + ", companyId=" + companyId + ", username=" + username + ", role=" + rolePlain);
 
-            // Add ROLE_ prefix
+        
             var authorities = List.of(
                     new SimpleGrantedAuthority("ROLE_" + rolePlain)
             );
@@ -72,8 +72,6 @@ public class JwtAuthFilter extends OncePerRequestFilter {
                     "companyId", companyId
             ));
 
-
-            // Set authentication context
             SecurityContextHolder.getContext().setAuthentication(auth);
 
             log.error("AUTH SET → " + auth.getDetails());
