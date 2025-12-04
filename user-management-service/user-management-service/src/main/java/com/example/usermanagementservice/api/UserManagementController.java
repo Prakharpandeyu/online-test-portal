@@ -19,9 +19,6 @@ public class UserManagementController {
 
     private final UserService userService;
 
-    // ============================
-    // ADMIN / SUPER ADMIN EDIT EMPLOYEE
-    // ============================
     @PatchMapping("/{targetUserId}")
     @PreAuthorize("hasAnyRole('ADMIN','SUPER_ADMIN')")
     public ResponseEntity<?> updateEmployee(@PathVariable Long targetUserId,
@@ -42,9 +39,6 @@ public class UserManagementController {
         ));
     }
 
-    // ============================
-    // Extract values from JWT details
-    // ============================
     private Long extractUserId(Authentication auth) {
         return Long.valueOf(((Map<String, Object>) auth.getDetails()).get("userId").toString());
     }
