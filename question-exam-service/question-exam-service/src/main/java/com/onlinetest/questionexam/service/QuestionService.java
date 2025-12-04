@@ -22,9 +22,6 @@ import java.nio.charset.StandardCharsets;
 import java.util.*;
 import java.util.stream.Collectors;
 
-/**
- * Question Service - Direct implementation (no interface)
- */
 @Service
 @RequiredArgsConstructor
 @Slf4j
@@ -34,9 +31,6 @@ public class QuestionService {
     private final QuestionRepository questionRepository;
     private final TopicRepository topicRepository;
 
-    /**
-     * Create a new question
-     */
     public QuestionResponseDTO createQuestion(QuestionRequestDTO requestDTO, Long companyId, Long userId, String role) {
         log.info("Creating question for topic: {} in company: {} by user: {} with role: {}",
                 requestDTO.getTopicId(), companyId, userId, role);
@@ -70,9 +64,8 @@ public class QuestionService {
         return mapToDTO(saved, topic.getName());
     }
 
-    /**
-     * Bulk upload questions via CSV
-     */
+    
+     //Bulk upload questions via CSV
     public List<QuestionResponseDTO> uploadQuestionsCsv(MultipartFile file, Long companyId, Long userId, String role) {
         if (file == null || file.isEmpty()) {
             throw new RuntimeException("Empty file");
@@ -151,19 +144,12 @@ public class QuestionService {
 
         return results;
     }
-
-    /**
-     * Get all questions for a company
-     */
+  
     @Transactional(readOnly = true)
     public List<QuestionResponseDTO> getAllQuestions(Long companyId) {
         List<Question> list = questionRepository.findByCompanyIdAndIsActiveTrueOrderByCreatedDateDesc(companyId);
         return list.stream().map(this::mapToDTO).collect(Collectors.toList());
     }
-
-    /**
-     * Get question by ID
-     */
     @Transactional(readOnly = true)
     public QuestionResponseDTO getQuestionById(Long questionId, Long companyId) {
         Question q = questionRepository.findByIdAndCompanyId(questionId, companyId)
@@ -171,9 +157,6 @@ public class QuestionService {
         return mapToDTO(q);
     }
 
-    /**
-     * Update question
-     */
     public QuestionResponseDTO updateQuestion(Long questionId, QuestionRequestDTO requestDTO, Long companyId) {
         Question q = questionRepository.findByIdAndCompanyId(questionId, companyId)
                 .orElseThrow(() -> new RuntimeException("Question not found with ID: " + questionId));
@@ -198,9 +181,6 @@ public class QuestionService {
         return mapToDTO(updated);
     }
 
-    /**
-     * Soft delete
-     */
     public void deleteQuestion(Long questionId, Long companyId) {
         Question q = questionRepository.findByIdAndCompanyId(questionId, companyId)
                 .orElseThrow(() -> new RuntimeException("Question not found with ID: " + questionId));
@@ -209,16 +189,13 @@ public class QuestionService {
         log.info("Question soft-deleted: {}", questionId);
     }
 
-    /**
-     * Get questions by topic
-     */
     @Transactional(readOnly = true)
     public List<QuestionResponseDTO> getQuestionsByTopic(Long topicId, Long companyId) {
         List<Question> list = questionRepository.findByTopicIdAndCompanyIdAndIsActiveTrueOrderByCreatedDateDesc(topicId, companyId);
         return list.stream().map(this::mapToDTO).collect(Collectors.toList());
     }
 
-    // ---- Helpers ----
+    //  Helpers 
 
     private void requireHeaders(Map<String, Integer> headerMap, String... names) {
         for (String n : names) {
