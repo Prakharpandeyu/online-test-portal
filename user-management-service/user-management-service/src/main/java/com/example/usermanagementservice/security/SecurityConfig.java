@@ -24,8 +24,6 @@ public class SecurityConfig {
 
                         .requestMatchers("/api/internal/**").permitAll()
                         .requestMatchers("/api/companies/register").permitAll()
-
-                        // everything else requires authentication
                         .anyRequest().authenticated()
                 )
                 .httpBasic(h -> h.disable())
