@@ -14,11 +14,6 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.util.List;
-
-/**
- * REST Controller for Question management operations
- * Handles CRUD operations for questions with company-specific isolation
- */
 @RestController
 @RequestMapping("/api/v1/questions")
 @RequiredArgsConstructor
@@ -29,10 +24,7 @@ public class QuestionController {
     private final QuestionService questionService;
     private final JWTUtil jwtUtil;
 
-    /**
-     * Create a new question
-     * Only SUPER_ADMIN and ADMIN can create questions
-     */
+    //create new question only super admin/admins
     @PostMapping
     public ResponseEntity<ApiResponseDTO<QuestionResponseDTO>> createQuestion(
             @Valid @RequestBody QuestionRequestDTO requestDTO,
@@ -73,9 +65,6 @@ public class QuestionController {
         return ResponseEntity.status(HttpStatus.CREATED).body(response);
     }
 
-    /**
-     * Get all questions for the company
-     */
     @GetMapping
     public ResponseEntity<ApiResponseDTO<List<QuestionResponseDTO>>> getAllQuestions(
             @RequestHeader("Authorization") String token) {
@@ -90,10 +79,6 @@ public class QuestionController {
 
         return ResponseEntity.ok(response);
     }
-
-    /**
-     * Get question by ID
-     */
     @GetMapping("/{questionId}")
     public ResponseEntity<ApiResponseDTO<QuestionResponseDTO>> getQuestionById(
             @PathVariable Long questionId,
@@ -110,10 +95,7 @@ public class QuestionController {
         return ResponseEntity.ok(response);
     }
 
-    /**
-     * Update question
-     * Only SUPER_ADMIN and ADMIN can update questions
-     */
+   //update question only super admin/admin
     @PutMapping("/{questionId}")
     public ResponseEntity<ApiResponseDTO<QuestionResponseDTO>> updateQuestion(
             @PathVariable Long questionId,
@@ -133,10 +115,7 @@ public class QuestionController {
         return ResponseEntity.ok(response);
     }
 
-    /**
-     * Delete question
-     * Only SUPER_ADMIN and ADMIN can delete questions
-     */
+    //only super admin/admin
     @DeleteMapping("/{questionId}")
     public ResponseEntity<ApiResponseDTO<Void>> deleteQuestion(
             @PathVariable Long questionId,
@@ -155,9 +134,7 @@ public class QuestionController {
         return ResponseEntity.ok(response);
     }
 
-    /**
-     * Get questions by topic
-     */
+   //get question by topic
     @GetMapping("/topic/{topicId}")
     public ResponseEntity<ApiResponseDTO<List<QuestionResponseDTO>>> getQuestionsByTopic(
             @PathVariable Long topicId,
