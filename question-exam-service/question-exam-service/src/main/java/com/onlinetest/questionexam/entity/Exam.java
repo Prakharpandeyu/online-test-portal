@@ -43,11 +43,9 @@ public class Exam {
     @Column(name = "created_by_role", nullable = false, length = 50)
     private String createdByRole;
 
-    // NEW: Pass/fail policy per exam (0–100). Null -> treated as 0 in service.
     @Column(name = "passing_percentage")
     private Integer passingPercentage;
 
-    // Tracking updates
     @Column(name = "updated_by")
     private Long updatedBy;
 
