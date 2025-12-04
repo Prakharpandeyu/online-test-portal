@@ -52,7 +52,6 @@ public class ExamService {
             topicRepository.findByIdAndCompanyId(t.getTopicId(), companyId)
                     .orElseThrow(() -> new RuntimeException("Topic not found in company: " + t.getTopicId()));
 
-
             List<Long> activeIds = questionRepository.findActiveIdsByCompanyAndTopic(companyId, t.getTopicId());
             if (activeIds.size() < t.getQuestionsCount()) {
                 throw new RuntimeException("Not enough active questions in topic: " + t.getTopicId());
@@ -69,17 +68,14 @@ public class ExamService {
             chosen.addAll(ids.subList(0, t.getQuestionsCount()));
         }
 
-
         Collections.shuffle(chosen, rnd);
-
-        // Persist exam
         Exam exam = new Exam();
         exam.setCompanyId(companyId);
         exam.setTitle(req.getTitle());
         exam.setDescription(req.getDescription());
         exam.setTotalQuestions(totalQuestions);
         exam.setDurationMinutes(req.getDurationMinutes());
-        exam.setPassingPercentage(req.getPassingPercentage());
+        exam.setPassingPercentage(req.getPassingPercentage()); // <-- Added
         exam.setCreatedBy(userId);
         exam.setCreatedByRole(role);
         Exam saved = examRepository.save(exam);
@@ -93,18 +89,10 @@ public class ExamService {
             examQuestionRepository.save(eq);
         }
 
-        return ExamResponseDTO.builder()
-                .id(saved.getId())
-                .companyId(companyId)
-                .title(saved.getTitle())
-                .description(saved.getDescription())
-                .totalQuestions(saved.getTotalQuestions())
-                .durationMinutes(saved.getDurationMinutes())
-                .selectedTopicCount(req.getTopics().size())
-                .createdDate(saved.getCreatedDate())
-                .build();
+        return mapToResponseDTO(saved, req.getTopics().size());
     }
 
+    // fetch exam details for the same company
     @Transactional(readOnly = true)
     public ExamResponseDTO getExamById(Long examId, Long companyId) {
         Exam exam = examRepository.findById(examId)
@@ -113,28 +101,12 @@ public class ExamService {
             throw new RuntimeException("Exam not found: " + examId);
         }
 
-        var eqs = examQuestionRepository.findByExamIdOrderByPositionAsc(examId);
-        var qIds = eqs.stream().map(ExamQuestion::getQuestionId).toList();
+        int topicCount = exam.getTotalQuestions() > 0 ? 1 : 0;
 
-        int topicCount = 0;
-        if (!qIds.isEmpty()) {
-            Set<Long> distinctTopics = questionRepository.findAllById(qIds).stream()
-                    .map(Question::getTopicId)
-                    .collect(Collectors.toSet());
-            topicCount = distinctTopics.size();
-        }
-
-        return ExamResponseDTO.builder()
-                .id(exam.getId())
-                .companyId(exam.getCompanyId())
-                .title(exam.getTitle())
-                .description(exam.getDescription())
-                .totalQuestions(exam.getTotalQuestions())
-                .durationMinutes(exam.getDurationMinutes())
-                .selectedTopicCount(topicCount)
-                .createdDate(exam.getCreatedDate())
-                .build();
+        return mapToResponseDTO(exam, topicCount);
     }
+
+    // deliver exam questions
     @Transactional(readOnly = true)
     public List<ExamQuestionViewDTO> getExamQuestionsForDelivery(Long examId, Long companyId) {
         Exam exam = examRepository.findById(examId)
@@ -145,7 +117,6 @@ public class ExamService {
 
         var eqs = examQuestionRepository.findByExamIdOrderByPositionAsc(examId);
         var qIds = eqs.stream().map(ExamQuestion::getQuestionId).toList();
-
         List<Question> questions = questionRepository.findAllById(qIds);
 
         return eqs.stream().map(eq -> {
@@ -170,19 +141,11 @@ public class ExamService {
     public List<ExamResponseDTO> listCompanyExams(Long companyId) {
         return examRepository.findAll().stream()
                 .filter(e -> e.getCompanyId().equals(companyId))
-                .map(e -> ExamResponseDTO.builder()
-                        .id(e.getId())
-                        .companyId(e.getCompanyId())
-                        .title(e.getTitle())
-                        .description(e.getDescription())
-                        .totalQuestions(e.getTotalQuestions())
-                        .durationMinutes(e.getDurationMinutes())
-                        .createdDate(e.getCreatedDate())
-                        .build())
+                .map(e -> mapToResponseDTO(e, null))
                 .toList();
     }
 
-    // Update exam by id 
+    // Update exam details
     public ExamResponseDTO updateExam(Long examId, ExamCreateRequestDTO req, Long companyId, Long userId, String role) {
         Exam exam = examRepository.findById(examId)
                 .orElseThrow(() -> new RuntimeException("Exam not found: " + examId));
@@ -193,11 +156,28 @@ public class ExamService {
         exam.setTitle(req.getTitle());
         exam.setDescription(req.getDescription());
         exam.setDurationMinutes(req.getDurationMinutes());
-        exam.setPassingPercentage(req.getPassingPercentage());
+        exam.setPassingPercentage(req.getPassingPercentage()); // <-- Added
         exam.setUpdatedBy(userId);
         exam.setUpdatedByRole(role);
+
         examRepository.save(exam);
 
+        return mapToResponseDTO(exam, null);
+    }
+
+    // Delete exam
+    public void deleteExam(Long examId, Long companyId) {
+        Exam exam = examRepository.findById(examId)
+                .orElseThrow(() -> new RuntimeException("Exam not found: " + examId));
+        if (!exam.getCompanyId().equals(companyId))
+            throw new RuntimeException("Exam not found: " + examId);
+
+        examQuestionRepository.deleteByExamId(examId);
+        examRepository.delete(exam);
+    }
+
+    // Helper for response mapping
+    private ExamResponseDTO mapToResponseDTO(Exam exam, Integer topicCount) {
         return ExamResponseDTO.builder()
                 .id(exam.getId())
                 .companyId(exam.getCompanyId())
@@ -205,21 +185,10 @@ public class ExamService {
                 .description(exam.getDescription())
                 .totalQuestions(exam.getTotalQuestions())
                 .durationMinutes(exam.getDurationMinutes())
+                .passingPercentage(exam.getPassingPercentage()) 
+                .selectedTopicCount(topicCount != null ? topicCount : null)
                 .createdDate(exam.getCreatedDate())
+                .updatedDate(exam.getUpdatedDate())
                 .build();
-    }
-
-    // Delete exam by id
-    public void deleteExam(Long examId, Long companyId) {
-        Exam exam = examRepository.findById(examId)
-                .orElseThrow(() -> new RuntimeException("Exam not found: " + examId));
-        if (!exam.getCompanyId().equals(companyId)) {
-            throw new RuntimeException("Exam not found: " + examId);
-        }
-
-        // Delete associated exam questions 
-        examQuestionRepository.deleteByExamId(examId);
-
-        examRepository.delete(exam);
     }
 }
