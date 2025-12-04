@@ -22,7 +22,6 @@ public class ExamCreateRequestDTO {
     @Min(value = 1, message = "Duration must be at least 1 minute")
     private Integer durationMinutes;
 
-    // NEW: optional pass/fail threshold; if null, service treats as 0
     @Min(value = 0, message = "Passing percentage must be between 0 and 100")
     @Max(value = 100, message = "Passing percentage must be between 0 and 100")
     private Integer passingPercentage;
