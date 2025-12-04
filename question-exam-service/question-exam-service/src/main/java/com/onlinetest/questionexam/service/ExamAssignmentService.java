@@ -111,7 +111,6 @@ public class ExamAssignmentService {
     private ExamAssignmentResponseDTO mapToDTO(ExamAssignment a, Exam ex, LocalDateTime now) {
         boolean expired = a.getEndTime() != null && now.isAfter(a.getEndTime());
 
-        // Updated Status Calculation (Completed wins over expired)
         String finalStatus;
         if (STATUS_COMPLETED.equals(a.getStatus())) {
             finalStatus = STATUS_COMPLETED;
