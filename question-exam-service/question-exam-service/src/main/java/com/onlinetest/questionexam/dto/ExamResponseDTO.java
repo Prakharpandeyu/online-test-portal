@@ -19,7 +19,7 @@ public class ExamResponseDTO {
     private Integer totalQuestions;
     private Integer durationMinutes;
     private Integer selectedTopicCount;
-    private Integer passingPercentage;      // NEW: pass/fail threshold (0–100), nullable
+    private Integer passingPercentage;    
     private LocalDateTime createdDate;
 
     // Optional, if needed by admin views
