@@ -4,7 +4,7 @@ import com.onlinetest.questionexam.dto.ApiResponseDTO;
 import com.onlinetest.questionexam.dto.PaginatedResponseDTO;
 import com.onlinetest.questionexam.dto.TopicRequestDTO;
 import com.onlinetest.questionexam.dto.TopicResponseDTO;
-import com.onlinetest.questionexam.service.TopicService;  // ← ADD THIS IMPORT
+import com.onlinetest.questionexam.service.TopicService;  
 import com.onlinetest.questionexam.util.JWTUtil;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -18,10 +18,7 @@ import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 
-/**
- * REST Controller for Topic management operations
- * Handles CRUD operations for topics with company-specific isolation
- */
+
 @RestController
 @RequestMapping("/api/v1/topics")
 @RequiredArgsConstructor
@@ -32,10 +29,7 @@ public class TopicController {
     private final TopicService topicService;
     private final JWTUtil jwtUtil;
 
-    /**
-     * Create a new topic
-     * Only SUPER_ADMIN and ADMIN can create topics
-     */
+   //create new topic only super admin/admin
     @PostMapping
     public ResponseEntity<ApiResponseDTO<TopicResponseDTO>> createTopic(
             @Valid @RequestBody TopicRequestDTO requestDTO,
@@ -43,7 +37,6 @@ public class TopicController {
 
         log.info("Creating new topic: {}", requestDTO.getName());
 
-        // Extract JWT token (remove "Bearer " prefix)
         String jwtToken = token.substring(7);
         Long companyId = jwtUtil.extractCompanyId(jwtToken);
         Long userId = jwtUtil.extractUserId(jwtToken);
@@ -59,9 +52,6 @@ public class TopicController {
         return ResponseEntity.status(HttpStatus.CREATED).body(response);
     }
 
-    /**
-     * Get all topics for the company
-     */
     @GetMapping
     public ResponseEntity<ApiResponseDTO<List<TopicResponseDTO>>> getAllTopics(
             @RequestHeader("Authorization") String token) {
@@ -77,9 +67,6 @@ public class TopicController {
         return ResponseEntity.ok(response);
     }
 
-    /**
-     * Get topics with pagination
-     */
     @GetMapping("/paginated")
     public ResponseEntity<ApiResponseDTO<PaginatedResponseDTO<TopicResponseDTO>>> getTopicsWithPagination(
             @RequestParam(defaultValue = "0") int page,
@@ -91,8 +78,6 @@ public class TopicController {
 
         Pageable pageable = PageRequest.of(page, size);
         Page<TopicResponseDTO> topicPage = topicService.getTopicsWithPagination(companyId, pageable);
-
-        // Convert to simple pagination response
         PaginatedResponseDTO<TopicResponseDTO> simpleResponse = PaginatedResponseDTO.<TopicResponseDTO>builder()
                 .content(topicPage.getContent())
                 .currentPage(topicPage.getNumber())
@@ -108,10 +93,6 @@ public class TopicController {
 
         return ResponseEntity.ok(response);
     }
-
-    /**
-     * Get topic by ID
-     */
     @GetMapping("/{topicId}")
     public ResponseEntity<ApiResponseDTO<TopicResponseDTO>> getTopicById(
             @PathVariable Long topicId,
@@ -127,11 +108,6 @@ public class TopicController {
 
         return ResponseEntity.ok(response);
     }
-
-    /**
-     * Update topic
-     * Only SUPER_ADMIN and ADMIN can update topics
-     */
     @PutMapping("/{topicId}")
     public ResponseEntity<ApiResponseDTO<TopicResponseDTO>> updateTopic(
             @PathVariable Long topicId,
@@ -150,11 +126,6 @@ public class TopicController {
 
         return ResponseEntity.ok(response);
     }
-
-    /**
-     * Delete topic
-     * Only SUPER_ADMIN and ADMIN can delete topics
-     */
     @DeleteMapping("/{topicId}")
     public ResponseEntity<ApiResponseDTO<Void>> deleteTopic(
             @PathVariable Long topicId,
@@ -173,9 +144,6 @@ public class TopicController {
         return ResponseEntity.ok(response);
     }
 
-    /**
-     * Search topics by name
-     */
     @GetMapping("/search")
     public ResponseEntity<ApiResponseDTO<List<TopicResponseDTO>>> searchTopics(
             @RequestParam String keyword,
