@@ -77,7 +77,6 @@ public class ExamSubmissionService {
             questionIdToPosition.put(eq.getQuestionId(), eq.getPosition());
         }
 
-        // Validate request answers against delivered set
         var answers = Optional.ofNullable(req.getAnswers()).orElse(List.of());
         Set<Long> uniqueQ = new HashSet<>();
         for (ExamSubmitRequestDTO.AnswerDTO ans : answers) {
@@ -124,14 +123,11 @@ public class ExamSubmissionService {
 
         int percentage = total == 0 ? 0 : (int) Math.round(100.0 * correct / total);
 
-        // Passing policy: per-exam passingPercentage (default 0 if null)
         int passPct = getPassingPercentage(exam);
         boolean passed = percentage >= passPct;
 
         // Duration policy
         int durationSeconds = clampDurationSeconds(req.getElapsedSeconds(), exam.getDurationMinutes());
-
-        // Persist attempt then answers
         int nextAttemptNum = attemptsUsed + 1;
         ExamAttempt attempt = new ExamAttempt();
         attempt.setCompanyId(companyId);
@@ -166,7 +162,6 @@ public class ExamSubmissionService {
 
         int remaining = Math.max(0, a.getMaxAttempts() - nextAttemptNum);
 
-        // Build response WITHOUT per-question correctness exposure
         return ExamResultDTO.builder()
                 .attemptId(savedAttempt.getId())
                 .attemptNumber(nextAttemptNum)
@@ -197,10 +192,9 @@ public class ExamSubmissionService {
             Object v = field.get(exam);
             if (v instanceof Integer i) return i;
         } catch (Exception ignored) {}
-        return 0; // default pass if policy not set
+        return 0; // default pass if not set
     }
 
-    // attemptsUsed storage shim — will be persisted once column is added
     private int getAttemptsUsed(ExamAssignment a) {
         try {
             var f = a.getClass().getDeclaredField("attemptsUsed");
