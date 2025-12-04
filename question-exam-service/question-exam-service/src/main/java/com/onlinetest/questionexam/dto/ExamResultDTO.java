@@ -24,8 +24,6 @@ public class ExamResultDTO {
     private Integer attemptsUsed;
     private Integer attemptsRemaining;
     private LocalDateTime submittedAt;
-
-    // Optional per-question review stub; do not include correct answers
     private List<QuestionReview> questions;
 
     @Data
@@ -34,7 +32,7 @@ public class ExamResultDTO {
     public static class QuestionReview {
         private Long questionId;
         private Integer position;
-        private String selected; // "A" | "B" | "C" | "D"
+        private String selected; 
         private Boolean correct;
     }
 }
