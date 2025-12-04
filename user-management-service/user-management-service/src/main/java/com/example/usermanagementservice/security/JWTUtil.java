@@ -27,22 +27,17 @@ public class JWTUtil {
     @Value("${security.jwt.audience:}")
     private String expectedAudience;
 
-    // ==========================================================
-    // VALIDATE TOKEN
-    // ==========================================================
     public boolean validateToken(String token) {
         try {
             Jws<Claims> jws = parse(token);
             Claims c = jws.getBody();
 
-            // ---- Expiration ----
             Date exp = c.getExpiration();
             if (exp != null && exp.before(new Date())) {
                 log.warn("JWT expired at {}", exp);
                 return false;
             }
 
-            // ---- Issuer ----
             if (expectedIssuer != null && !expectedIssuer.isBlank()) {
                 if (!expectedIssuer.equals(c.getIssuer())) {
                     log.warn("Issuer mismatch. expected={}, actual={}", expectedIssuer, c.getIssuer());
@@ -50,12 +45,9 @@ public class JWTUtil {
                 }
             }
 
-            // ---- Audience (String / List / Set ) ----
             Object audObj = c.get("aud");
 
             if (expectedAudience != null && !expectedAudience.isBlank()) {
-
-                // aud = "api"
                 if (audObj instanceof String s) {
                     if (!s.equals(expectedAudience)) {
                         log.warn("Audience mismatch. expected={}, actual={}", expectedAudience, s);
@@ -63,23 +55,18 @@ public class JWTUtil {
                     }
                 }
 
-                // aud = ["api"]
                 else if (audObj instanceof List<?> list) {
                     if (!list.contains(expectedAudience)) {
                         log.warn("Audience list mismatch. expected={} not found", expectedAudience);
                         return false;
                     }
                 }
-
-                // aud = {"api"}   (Set)
                 else if (audObj instanceof Set<?> set) {
                     if (!set.contains(expectedAudience)) {
                         log.warn("Audience set mismatch. expected={} not found", expectedAudience);
                         return false;
                     }
                 }
-
-                // Unknown type
                 else {
                     log.warn("Unknown audience type: {}", audObj);
                     return false;
@@ -94,9 +81,6 @@ public class JWTUtil {
         }
     }
 
-    // ==========================================================
-    // EXTRACT CLAIMS
-    // ==========================================================
     public Long extractUserId(String token) {
         Claims c = claims(token);
         Object v = c.get("userId");
@@ -111,7 +95,6 @@ public class JWTUtil {
         return toLong(v);
     }
 
-    // SUPER_ADMIN / ADMIN / EMPLOYEE
     public String extractRole(String token) {
         Claims c = claims(token);
 
@@ -131,14 +114,10 @@ public class JWTUtil {
         throw new IllegalArgumentException("role/roles missing in token");
     }
 
-    // Username = subject ("sub")
     public String extractUsername(String token) {
         return claims(token).getSubject();
     }
 
-    // ==========================================================
-    // HELPERS
-    // ==========================================================
     private Claims claims(String token) {
         return parse(token).getBody();
     }
