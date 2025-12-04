@@ -57,7 +57,7 @@ public class ExamController {
         return ResponseEntity.ok(ApiResponseDTO.success("Exam retrieved", dto));
     }
 
-    // Optional: list exams for company (Admin/Super Admin)
+    // list exams for company (Admin/Super Admin)
     @PreAuthorize("hasAnyRole('SUPER_ADMIN','ADMIN')")
     @GetMapping
     public ResponseEntity<ApiResponseDTO<List<ExamResponseDTO>>> listExams(
@@ -102,7 +102,6 @@ public class ExamController {
     }
 
     // Deliver questions to candidate (no correct answers)
-    // If only employees should access this, switch to hasRole('EMPLOYEE')
     @PreAuthorize("hasAnyRole('SUPER_ADMIN','ADMIN','EMPLOYEE')")
     @GetMapping("/{examId}/deliver")
     public ResponseEntity<ApiResponseDTO<List<ExamQuestionViewDTO>>> deliverExamQuestions(
