@@ -71,7 +71,6 @@ public class JWTUtil {
         return toLong(v);
     }
 
-    // Returns plain role: SUPER_ADMIN / ADMIN / EMPLOYEE
     public String extractRole(String token) {
         Claims c = claims(token);
         Object rolesObj = c.get("roles");
