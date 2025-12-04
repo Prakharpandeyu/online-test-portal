@@ -79,11 +79,11 @@ public class ExamService {
         exam.setDescription(req.getDescription());
         exam.setTotalQuestions(totalQuestions);
         exam.setDurationMinutes(req.getDurationMinutes());
+        exam.setPassingPercentage(req.getPassingPercentage());
         exam.setCreatedBy(userId);
         exam.setCreatedByRole(role);
         Exam saved = examRepository.save(exam);
 
-        // Persist exam questions in order
         int pos = 1;
         for (Long qid : chosen) {
             ExamQuestion eq = new ExamQuestion();
@@ -105,7 +105,6 @@ public class ExamService {
                 .build();
     }
 
-    // Read: fetch exam details for the same tenant, including computed selectedTopicCount
     @Transactional(readOnly = true)
     public ExamResponseDTO getExamById(Long examId, Long companyId) {
         Exam exam = examRepository.findById(examId)
@@ -136,8 +135,6 @@ public class ExamService {
                 .createdDate(exam.getCreatedDate())
                 .build();
     }
-
-    // Read: deliver all questions and options (no correct answers) in persisted order
     @Transactional(readOnly = true)
     public List<ExamQuestionViewDTO> getExamQuestionsForDelivery(Long examId, Long companyId) {
         Exam exam = examRepository.findById(examId)
@@ -149,7 +146,6 @@ public class ExamService {
         var eqs = examQuestionRepository.findByExamIdOrderByPositionAsc(examId);
         var qIds = eqs.stream().map(ExamQuestion::getQuestionId).toList();
 
-        // Bulk fetch questions, then map in the same order
         List<Question> questions = questionRepository.findAllById(qIds);
 
         return eqs.stream().map(eq -> {
@@ -185,6 +181,8 @@ public class ExamService {
                         .build())
                 .toList();
     }
+
+    // Update exam by id 
     public ExamResponseDTO updateExam(Long examId, ExamCreateRequestDTO req, Long companyId, Long userId, String role) {
         Exam exam = examRepository.findById(examId)
                 .orElseThrow(() -> new RuntimeException("Exam not found: " + examId));
@@ -195,6 +193,7 @@ public class ExamService {
         exam.setTitle(req.getTitle());
         exam.setDescription(req.getDescription());
         exam.setDurationMinutes(req.getDurationMinutes());
+        exam.setPassingPercentage(req.getPassingPercentage());
         exam.setUpdatedBy(userId);
         exam.setUpdatedByRole(role);
         examRepository.save(exam);
@@ -218,7 +217,7 @@ public class ExamService {
             throw new RuntimeException("Exam not found: " + examId);
         }
 
-        // Delete associated exam questions first
+        // Delete associated exam questions 
         examQuestionRepository.deleteByExamId(examId);
 
         examRepository.delete(exam);
