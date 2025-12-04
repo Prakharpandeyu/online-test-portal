@@ -6,9 +6,6 @@ import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
-/**
- * DTO for Topic creation and update requests
- */
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
