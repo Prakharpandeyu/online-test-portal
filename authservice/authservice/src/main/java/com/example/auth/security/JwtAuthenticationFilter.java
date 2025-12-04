@@ -32,15 +32,12 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
     @Override
     protected boolean shouldNotFilter(HttpServletRequest request) {
         String path = request.getRequestURI();
-// Allow unauthenticated access to auth endpoints
         return path.startsWith("/api/auth/");
     }
 
     @Override
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain chain)
             throws ServletException, IOException {
-
-
         String header = request.getHeader(HttpHeaders.AUTHORIZATION);
         if (StringUtils.hasText(header) && header.startsWith("Bearer ")) {
             String token = header.substring(7);
@@ -50,8 +47,6 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
                 Claims claims = claimsJws.getBody();
 
                 String username = claims.getSubject();
-
-                // Safely read roles as a List<?> and map to strings to avoid unchecked cast warnings
                 Object rolesObj = claims.get("roles");
                 List<String> roles = new ArrayList<>();
                 if (rolesObj instanceof List<?> list) {
