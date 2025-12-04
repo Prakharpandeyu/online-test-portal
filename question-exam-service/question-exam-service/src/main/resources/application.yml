@@ -29,7 +29,7 @@ services:
   auth:
     base-url: http://localhost:8081
 
-# ✅ Shared JWT Config (must match Auth & Gateway)
+#  Shared JWT Config 
 security:
   jwt:
     secret: "myVeryLongAndSecureJwtSecretKeyForApiGatewayThatIsAtLeast32Characters"
