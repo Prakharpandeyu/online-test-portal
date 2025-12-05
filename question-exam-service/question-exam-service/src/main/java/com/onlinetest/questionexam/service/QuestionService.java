@@ -32,22 +32,17 @@ public class QuestionService {
     private final TopicRepository topicRepository;
 
     public QuestionResponseDTO createQuestion(QuestionRequestDTO requestDTO, Long companyId, Long userId, String role) {
-        log.info("Creating question for topic: {} in company: {} by user: {} with role: {}",
-                requestDTO.getTopicId(), companyId, userId, role);
 
-        // Validate topic belongs to the company
         Topic topic = topicRepository.findByIdAndCompanyId(requestDTO.getTopicId(), companyId)
-                .orElseThrow(() -> new RuntimeException("Topic not found with ID: " + requestDTO.getTopicId()));
+                .orElseThrow(() -> new RuntimeException("Topic not found: " + requestDTO.getTopicId()));
 
-        // Prevent duplicates
         if (questionRepository.existsByCompanyIdAndQuestionTextIgnoreCase(companyId, requestDTO.getQuestionText())) {
-            throw new RuntimeException("Question with similar text already exists");
+            throw new RuntimeException("Question already exists");
         }
 
-        // Build and save
         Question q = new Question();
         q.setCompanyId(companyId);
-        q.setTopicId(requestDTO.getTopicId());
+        q.setTopicId(topic.getId());
         q.setQuestionText(requestDTO.getQuestionText());
         q.setOptionA(requestDTO.getOptionA());
         q.setOptionB(requestDTO.getOptionB());
@@ -59,34 +54,45 @@ public class QuestionService {
         q.setIsActive(true);
 
         Question saved = questionRepository.save(q);
-        log.info("Question created: {}", saved.getId());
-
         return mapToDTO(saved, topic.getName());
     }
 
-    
-     //Bulk upload questions via CSV
     public List<QuestionResponseDTO> uploadQuestionsCsv(MultipartFile file, Long companyId, Long userId, String role) {
+
         if (file == null || file.isEmpty()) {
             throw new RuntimeException("Empty file");
         }
-        if (!Objects.requireNonNull(file.getOriginalFilename()).toLowerCase().endsWith(".csv")) {
-            throw new RuntimeException("Only CSV files are supported");
+        if (!file.getOriginalFilename().toLowerCase().endsWith(".csv")) {
+            throw new RuntimeException("Only CSV supported");
         }
 
         List<QuestionResponseDTO> results = new ArrayList<>();
 
         try (Reader in = new InputStreamReader(file.getInputStream(), StandardCharsets.UTF_8)) {
-            CSVFormat format = CSVFormat.DEFAULT
+
+            CSVParser parser = CSVFormat.DEFAULT
                     .withFirstRecordAsHeader()
                     .withIgnoreEmptyLines()
                     .withTrim(true)
-                    .withIgnoreSurroundingSpaces(true);
+                    .parse(in);
 
-            CSVParser parser = format.parse(in);
+            // Normalize headers to remove BOM
+            Map<String, Integer> cleanedHeaders = new LinkedHashMap<>();
+            parser.getHeaderMap().forEach((key, val) -> {
+                String cleaned = key.replace("\uFEFF", "").trim();
+                cleanedHeaders.put(cleaned, val);
+            });
 
-            // Required headers
-            requireHeaders(parser.getHeaderMap(),
+            // Reparse using cleaned headers
+            parser = CSVParser.parse(file.getInputStream(), StandardCharsets.UTF_8,
+                    CSVFormat.DEFAULT
+                            .withHeader(cleanedHeaders.keySet().toArray(new String[0]))
+                            .withSkipHeaderRecord()
+                            .withIgnoreEmptyLines()
+                            .withTrim(true)
+            );
+
+            requireHeaders(cleanedHeaders,
                     "topicName", "questionText", "optionA", "optionB", "optionC", "optionD", "correctAnswer");
 
             for (CSVRecord rec : parser) {
@@ -98,25 +104,22 @@ public class QuestionService {
                     String optionC = nonEmpty(rec.get("optionC"), "optionC");
                     String optionD = nonEmpty(rec.get("optionD"), "optionD");
 
-                    String correct = nonEmpty(rec.get("correctAnswer"), "correctAnswer")
+                    String correctVal = nonEmpty(rec.get("correctAnswer"), "correctAnswer")
                             .trim().toUpperCase();
 
                     Question.CorrectAnswer correctAnswer =
-                            Question.CorrectAnswer.valueOf(correct);
+                            Question.CorrectAnswer.valueOf(correctVal);
 
-                    // Find topic by NAME + COMPANY
-                    Topic topic = topicRepository
-                            .findByNameIgnoreCaseAndCompanyId(topicName, companyId)
+                    Topic topic = topicRepository.findByNameIgnoreCaseAndCompanyId(topicName, companyId)
                             .orElseThrow(() ->
-                                    new RuntimeException("Topic not found for company: " + topicName));
+                                    new RuntimeException("Topic not found for company: " + topicName)
+                            );
 
-                    // Skip duplicates
                     if (questionRepository.existsByCompanyIdAndQuestionTextIgnoreCase(companyId, questionText)) {
-                        log.warn("Duplicate skipped (questionText): {}", questionText);
+                        log.warn("Skipping duplicate: {}", questionText);
                         continue;
                     }
 
-                    // Build & save
                     Question q = new Question();
                     q.setCompanyId(companyId);
                     q.setTopicId(topic.getId());
@@ -133,43 +136,40 @@ public class QuestionService {
                     Question saved = questionRepository.save(q);
                     results.add(mapToDTO(saved, topic.getName()));
 
-                } catch (Exception rowEx) {
-                    log.error("CSV row {} error: {}", rec.getRecordNumber(), rowEx.getMessage());
+                } catch (Exception ex) {
+                    log.error("CSV row {} error: {}", rec.getRecordNumber(), ex.getMessage());
                 }
             }
 
         } catch (IOException e) {
-            throw new RuntimeException("Failed to read CSV: " + e.getMessage(), e);
+            throw new RuntimeException("CSV read failed: " + e.getMessage());
         }
 
         return results;
     }
-  
+
     @Transactional(readOnly = true)
     public List<QuestionResponseDTO> getAllQuestions(Long companyId) {
-        List<Question> list = questionRepository.findByCompanyIdAndIsActiveTrueOrderByCreatedDateDesc(companyId);
-        return list.stream().map(this::mapToDTO).collect(Collectors.toList());
+        return questionRepository.findByCompanyIdAndIsActiveTrueOrderByCreatedDateDesc(companyId)
+                .stream().map(this::mapToDTO).collect(Collectors.toList());
     }
+
     @Transactional(readOnly = true)
     public QuestionResponseDTO getQuestionById(Long questionId, Long companyId) {
         Question q = questionRepository.findByIdAndCompanyId(questionId, companyId)
-                .orElseThrow(() -> new RuntimeException("Question not found with ID: " + questionId));
+                .orElseThrow(() -> new RuntimeException("Question not found"));
         return mapToDTO(q);
     }
 
     public QuestionResponseDTO updateQuestion(Long questionId, QuestionRequestDTO requestDTO, Long companyId) {
+
         Question q = questionRepository.findByIdAndCompanyId(questionId, companyId)
-                .orElseThrow(() -> new RuntimeException("Question not found with ID: " + questionId));
+                .orElseThrow(() -> new RuntimeException("Question not found"));
 
-        topicRepository.findByIdAndCompanyId(requestDTO.getTopicId(), companyId)
-                .orElseThrow(() -> new RuntimeException("Topic not found with ID: " + requestDTO.getTopicId()));
+        Topic topic = topicRepository.findByIdAndCompanyId(requestDTO.getTopicId(), companyId)
+                .orElseThrow(() -> new RuntimeException("Topic not found"));
 
-        if (!q.getQuestionText().equalsIgnoreCase(requestDTO.getQuestionText())
-                && questionRepository.existsByCompanyIdAndQuestionTextIgnoreCase(companyId, requestDTO.getQuestionText())) {
-            throw new RuntimeException("Question with similar text already exists");
-        }
-
-        q.setTopicId(requestDTO.getTopicId());
+        q.setTopicId(topic.getId());
         q.setQuestionText(requestDTO.getQuestionText());
         q.setOptionA(requestDTO.getOptionA());
         q.setOptionB(requestDTO.getOptionB());
@@ -183,48 +183,41 @@ public class QuestionService {
 
     public void deleteQuestion(Long questionId, Long companyId) {
         Question q = questionRepository.findByIdAndCompanyId(questionId, companyId)
-                .orElseThrow(() -> new RuntimeException("Question not found with ID: " + questionId));
+                .orElseThrow(() -> new RuntimeException("Question not found"));
         q.setIsActive(false);
         questionRepository.save(q);
-        log.info("Question soft-deleted: {}", questionId);
     }
 
     @Transactional(readOnly = true)
     public List<QuestionResponseDTO> getQuestionsByTopic(Long topicId, Long companyId) {
-        List<Question> list = questionRepository.findByTopicIdAndCompanyIdAndIsActiveTrueOrderByCreatedDateDesc(topicId, companyId);
-        return list.stream().map(this::mapToDTO).collect(Collectors.toList());
+        return questionRepository.findByTopicIdAndCompanyIdAndIsActiveTrueOrderByCreatedDateDesc(topicId, companyId)
+                .stream().map(this::mapToDTO).collect(Collectors.toList());
     }
 
-    //  Helpers 
+    // Helpers
+    private void requireHeaders(Map<String, Integer> headers, String... needed) {
+        Set<String> normalized = headers.keySet().stream()
+                .map(h -> h.replace("\uFEFF", "").trim().toLowerCase())
+                .collect(Collectors.toSet());
 
-    private void requireHeaders(Map<String, Integer> headerMap, String... names) {
-        for (String n : names) {
-            boolean present = headerMap.keySet().stream().anyMatch(h -> h.equalsIgnoreCase(n));
-            if (!present) {
-                throw new RuntimeException("Missing required header: " + n);
+        for (String need : needed) {
+            if (!normalized.contains(need.toLowerCase())) {
+                throw new RuntimeException("Missing header: " + need);
             }
         }
     }
 
     private String nonEmpty(String val, String field) {
         if (val == null || val.trim().isEmpty()) {
-            throw new IllegalArgumentException("Missing value for " + field);
+            throw new RuntimeException("Missing: " + field);
         }
         return val.trim();
     }
 
-    private Long parseLong(String s) {
-        try {
-            return Long.parseLong(s.trim());
-        } catch (Exception e) {
-            throw new IllegalArgumentException("Invalid number: " + s);
-        }
-    }
-
     private QuestionResponseDTO mapToDTO(Question q) {
-        String topicName = (q.getTopic() != null)
-                ? q.getTopic().getName()
-                : topicRepository.findById(q.getTopicId()).map(Topic::getName).orElse("Unknown");
+        String topicName = topicRepository.findById(q.getTopicId())
+                .map(Topic::getName).orElse("Unknown");
+
         return mapToDTO(q, topicName);
     }
 
