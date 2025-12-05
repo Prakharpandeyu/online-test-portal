@@ -1,10 +1,6 @@
 package com.onlinetest.questionexam.dto;
 
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Data;
-import lombok.NoArgsConstructor;
-
+import lombok.*;
 import java.time.LocalDateTime;
 import java.util.List;
 
@@ -13,17 +9,26 @@ import java.util.List;
 @NoArgsConstructor
 @AllArgsConstructor
 public class ExamResultDTO {
+
     private Long attemptId;
     private Integer attemptNumber;
     private Integer totalQuestions;
     private Integer correctAnswers;
     private Integer percentage;
     private Boolean passed;
+
     private Integer durationSeconds;
+    private String formattedDuration; 
+
     private Integer maxAttempts;
     private Integer attemptsUsed;
     private Integer attemptsRemaining;
+
+    private Integer passingThreshold; 
+    private String status; 
+
     private LocalDateTime submittedAt;
+
     private List<QuestionReview> questions;
 
     @Data
@@ -32,7 +37,7 @@ public class ExamResultDTO {
     public static class QuestionReview {
         private Long questionId;
         private Integer position;
-        private String selected; 
+        private String selected;
         private Boolean correct;
     }
 }
